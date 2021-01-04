@@ -1,0 +1,51 @@
+package com.zhao.commonservice.service.impl;
+
+import com.zhao.commonservice.service.CacheService;
+import org.redisson.api.RMapCache;
+import org.redisson.api.RedissonClient;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.concurrent.TimeUnit;
+
+/**
+ * 缓存服务
+ * @Author: zhaolianqi
+ * @Date: 2020/9/4 16:44
+ * @Version: v1.0
+ */
+@Service
+public class RedisCacheService implements CacheService {
+
+    @Autowired
+    private RedissonClient redissonClient;
+
+    @Override
+    public Object get(String key) {
+        return redissonClient.getBucket(key).get();
+    }
+
+    @Override
+    public void put(String key, Object object, int seconds) {
+        redissonClient.getBucket(key).set(object, seconds, TimeUnit.SECONDS);
+    }
+
+    @Override
+    public Object getFromMapCache(String map, String key) {
+        RMapCache<String, Object> mapCache = redissonClient.getMapCache(map);
+        if (mapCache == null)
+            return null;
+        return mapCache.get(key);
+    }
+
+    @Override
+    public void removeMapCache(String map) {
+        redissonClient.getMapCache(map).delete();
+    }
+
+    @Override
+    public void putMapCache(String map, String key, Object object, int seconds) {
+        redissonClient.getMapCache(map).put(key, object, seconds, TimeUnit.SECONDS);
+    }
+
+}

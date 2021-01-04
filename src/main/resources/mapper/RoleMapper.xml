@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zhao.commonservice.dao.RoleMapper" >
+	<resultMap type="com.zhao.commonservice.entity.Role" id="BaseRM">
+		<id column="id" property="id"/>
+		<result column="name" property="name"/>
+		<result column="remark" property="remark"/>
+	</resultMap>
+
+	<sql id="BaseSelectColumn">
+		self.id,
+		self.name,
+		self.remark
+	</sql>
+	
+	<sql id="LinkedSql">
+		from role_tb self
+	</sql>
+	
+	<sql id="PageConditionSql">
+
+	</sql>
+
+	<select id="selectTotalCount" resultType="long">
+		select count(*)
+		<include refid="LinkedSql"></include>
+		<include refid="PageConditionSql"></include>
+	</select>
+
+	<select id="selectPage" resultMap="BaseRM">
+		select
+			<include refid="BaseSelectColumn"></include>
+		<include refid="LinkedSql"></include>
+		inner join (
+			select self.id
+			<include refid="LinkedSql"></include>
+			<include refid="PageConditionSql"></include>
+			order by self.id desc
+			<if test="reqvo.pageable == 1">
+				limit #{reqvo.position}, #{reqvo.size}
+			</if>
+		) u on u.id=self.id
+		order by self.id desc
+	</select>
+
+	<select id="selectDetail" resultMap="BaseRM">
+		select
+			<include refid="BaseSelectColumn"></include>
+		<include refid="LinkedSql"></include>
+		<include refid="PageConditionSql"></include>
+		limit 1
+	</select>
+
+</mapper>

@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zhao.commonservice.dao.UserMapper" >
+	<resultMap type="com.zhao.commonservice.entity.User" id="BaseRM">
+		<id column="id" property="id"/>
+		<result column="status" property="status"/>
+		<result column="account" property="account"/>
+		<result column="create_time" property="createTime"/>
+		<result column="update_time" property="updateTime"/>
+		<result column="nickname" property="nickname"/>
+		<result column="gender" property="gender"/>
+		<result column="phone" property="phone"/>
+		<result column="real_name" property="realName"/>
+		<result column="passwd" property="passwd"/>
+		<result column="avatar" property="avatar"/>
+		<result column="mail" property="mail"/>
+		<result column="address" property="address"/>
+		<result column="remark" property="remark"/>
+	</resultMap>
+
+	<resultMap id="DetailRM" type="com.zhao.commonservice.entity.User" extends="BaseRM">
+
+	</resultMap>
+
+	<sql id="BaseSelectColumn">
+		self.id,
+		self.status,
+		self.account,
+		self.create_time,
+		self.update_time,
+		self.role_id,
+		self.nickname,
+		self.gender,
+		self.phone,
+		self.real_name,
+		self.passwd,
+		self.avatar,
+		self.mail,
+		self.address,
+		self.remark
+	</sql>
+	
+	<sql id="LinkedSql">
+		from user_tb self
+	</sql>
+	
+	<sql id="PageConditionSql">
+		where self.is_delete!=1
+		<if test="reqvo.account != null and reqvo.account!=''">
+			and self.account=#{reqvo.account}
+		</if>
+		<if test="reqvo.phone != null and reqvo.phone!=''">
+			and self.phone=#{reqvo.phone}
+		</if>
+		<if test="reqvo.mail!= null and reqvo.mail!=''">
+			and self.mail=#{reqvo.mail}
+		</if>
+		<if test="reqvo.nickname!= null and reqvo.nickname!=''">
+			and self.nickname like concat('%', #{reqvo.nickname}, '%')
+		</if>
+		<if test="reqvo.roleId!= null">
+			and self.role_id=#{reqvo.roleId}
+		</if>
+		<if test="reqvo.status!= null">
+			and self.status=#{reqvo.status}
+		</if>
+	</sql>
+
+	<select id="selectByAccount" resultMap="DetailRM">
+		select
+			<include refid="BaseSelectColumn"/>
+			,r.id rId, r.name rName
+		<include refid="LinkedSql"/>
+        left join role_tb r on r.id=self.role_id
+        where self.is_delete!=1 and self.account=#{account}
+	</select>
+
+	<sql id="pageLinkedSql">
+		from user_tb self
+	</sql>
+
+	<select id="selectTotalCount" resultType="long">
+		select count(*)
+		<include refid="pageLinkedSql"></include>
+		<include refid="PageConditionSql"></include>
+	</select>
+
+	<select id="selectPage" resultMap="DetailRM">
+		select
+			<include refid="BaseSelectColumn"></include>
+		<include refid="LinkedSql"></include>
+		inner join (
+			select self.id
+			<include refid="LinkedSql"></include>
+			<include refid="PageConditionSql"></include>
+			order by self.id desc
+			<if test="reqvo.pageable == 1">
+				limit #{reqvo.position}, #{reqvo.size}
+			</if>
+		) u on u.id=self.id
+		order by self.id desc
+	</select>
+
+	<select id="selectDetail" resultMap="DetailRM">
+		select
+			<include refid="BaseSelectColumn"></include>
+		<include refid="LinkedSql"></include>
+		<include refid="PageConditionSql"></include>
+		limit 1
+	</select>
+
+</mapper>

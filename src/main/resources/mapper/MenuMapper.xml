@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zhao.commonservice.dao.MenuMapper" >
+	<resultMap type="com.zhao.commonservice.entity.Menu" id="BaseRM">
+		<id column="id" property="id"/>
+		<result column="status" property="status"/>
+		<result column="parent_id" property="parentId"/>
+		<result column="name" property="name"/>
+		<result column="type" property="type"/>
+		<result column="sort_no" property="sortNo"/>
+		<result column="create_time" property="createTime"/>
+		<result column="method" property="method"/>
+		<result column="icon" property="icon"/>
+		<result column="url" property="url"/>
+		<result column="remark" property="remark"/>
+	</resultMap>
+
+	<resultMap id="SubMenusRM" type="com.zhao.commonservice.entity.Menu" extends="BaseRM">
+		<collection property="subMenus" ofType="com.zhao.commonservice.entity.Menu">
+			<id column="sId" property="id"/>
+			<result column="sName" property="name"/>
+			<result column="sType" property="type"/>
+			<result column="sMethod" property="method"/>
+			<result column="sIcon" property="icon"/>
+			<result column="sUrl" property="url"/>
+			<result column="sRemark" property="remark"/>
+		</collection>
+	</resultMap>
+
+	<sql id="BaseSelectColumn">
+		self.id,
+		self.status,
+		self.parent_id,
+		self.name,
+		self.type,
+		self.sort_no,
+		self.create_time,
+		self.method,
+		self.icon,
+		self.url,
+		self.remark
+	</sql>
+	
+	<sql id="LinkedSql">
+		from menu_tb self
+	</sql>
+	
+	<sql id="PageConditionSql">
+		where self.is_delete!=1
+	</sql>
+
+	<select id="selectListByRoles" resultMap="SubMenusRM">
+		select
+			<include refid="BaseSelectColumn"></include>
+			,sub.id sId, sub.name sName, sub.type sType, sub.method sMethod, sub.icon sIcon, sub.url sUrl, sub.remark sRemark
+		<include refid="LinkedSql"></include>
+		left join menu_tb sub on sub.parent_id=self.id and sub.is_delete=0
+		inner join role_menu_tb rm on rm.menu_id=self.id
+		WHERE self.parent_id=0 and rm.role_id in
+		<foreach collection="roleIds" open="(" item="rId" separator="," close=")">
+			#{rId}
+		</foreach>
+		order by self.type asc, self.sort_no desc, sub.sort_no desc
+	</select>
+
+	<select id="selectTotalCount" resultType="long">
+		select count(*)
+		<include refid="LinkedSql"></include>
+		<include refid="PageConditionSql"></include>
+	</select>
+
+	<select id="selectPage" resultMap="BaseRM">
+		select
+			<include refid="BaseSelectColumn"></include>
+		<include refid="LinkedSql"></include>
+		inner join (
+			select self.id
+			<include refid="LinkedSql"></include>
+			<include refid="PageConditionSql"></include>
+			order by self.id desc
+			<if test="reqvo.pageable == 1">
+				limit #{reqvo.position}, #{reqvo.size}
+			</if>
+		) u on u.id=self.id
+		order by self.id desc
+	</select>
+
+	<select id="selectDetail" resultMap="BaseRM">
+		select
+			<include refid="BaseSelectColumn"></include>
+		<include refid="LinkedSql"></include>
+		<include refid="PageConditionSql"></include>
+		limit 1
+	</select>
+
+</mapper>
