@@ -10,19 +10,12 @@ import java.io.Serializable;
  */
 public class FileUploadReqVO implements Serializable {
 
-    private String key;
+    private String md5;
     private String fileName;
     private int fileSize;
     private int totalShard;
     private int currShard;
 
-    public String getKey() {
-        return key;
-    }
-
-    public void setKey(String key) {
-        this.key = key;
-    }
 
     public String getFileName() {
         return fileName;
@@ -54,5 +47,13 @@ public class FileUploadReqVO implements Serializable {
 
     public void setCurrShard(int currShard) {
         this.currShard = currShard;
+    }
+
+    public String getMd5() {
+        return md5;
+    }
+
+    public void setMd5(String md5) {
+        this.md5 = md5;
     }
 }

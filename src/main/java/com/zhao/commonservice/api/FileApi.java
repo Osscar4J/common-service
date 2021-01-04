@@ -19,6 +19,7 @@ import com.zhao.commonservice.oss.modal.OSSModel;
 import com.zhao.commonservice.reqvo.FileUploadReqVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -42,6 +43,7 @@ import java.util.Calendar;
 public class FileApi {
 
     private String roleSessionName = "promanager";
+    private String tempFilePath = "F:/videos/temp/";
 
     private Logger logger = LoggerFactory.getLogger(FileApi.class);
 
@@ -127,7 +129,7 @@ public class FileApi {
     @PostMapping("/checkShard")
     public Integer checkFileShardIndex(@RequestBody FileUploadReqVO reqVO){
         int shardIndex = 0;
-        String fileMd5 = reqVO.getKey();
+        String fileMd5 = reqVO.getMd5();
         // TODO 通过文件的MD5值查该文件是否上传过或是否上传完，
         // TODO 如果没有上传完，则返回最后上传的分片index
 
@@ -141,13 +143,20 @@ public class FileApi {
      */
     @PostMapping("/multipartUpload")
     public BaseResponse<Object> multipartUpload(FileUploadReqVO reqVO, MultipartFile file) throws IOException {
+        if (StringUtils.isEmpty(reqVO.getMd5()))
+            return null;
+        if (StringUtils.isEmpty(reqVO.getFileName()))
+            reqVO.setFileName(file.getOriginalFilename());
+        String md5 = reqVO.getMd5();
         // 这个目录做成可配置的
-        String savePath = "F:/videos/temp/";
-        File destFile = new File(savePath + reqVO.getFileName() + "-" + reqVO.getCurrShard());
+        String targetPath = tempFilePath + md5 + "/";
+        File destFile = new File(targetPath + reqVO.getFileName() + "-" + reqVO.getCurrShard());
         file.transferTo(destFile);
+        // TODO redis保存当前进度
+
         // 分片已全部上传完成，进行合并
         if (reqVO.getCurrShard() == reqVO.getTotalShard()){
-            File newFile = new File(savePath + reqVO.getFileName());
+            File newFile = new File(targetPath + reqVO.getFileName());
             if (newFile.exists())
                 newFile.delete();
             FileOutputStream outputStream = new FileOutputStream(newFile, true);
@@ -156,7 +165,7 @@ public class FileApi {
             int len;
             try {
                 for (int i = 0; i < reqVO.getTotalShard(); i++){
-                    fileInputStream = new FileInputStream(new File(savePath + reqVO.getFileName() + "-" + (i + 1)));
+                    fileInputStream = new FileInputStream(new File(targetPath + reqVO.getFileName() + "-" + (i + 1)));
                     while ((len = fileInputStream.read(byt)) != -1) {
                         outputStream.write(byt, 0, len);
                     }
@@ -164,12 +173,17 @@ public class FileApi {
                 }
                 // 删除临时文件
                 for (int i = 0; i < reqVO.getTotalShard(); i++){
-                    File tempFile = new File(savePath + reqVO.getFileName() + "-" + (i + 1));
+                    File tempFile = new File(targetPath + reqVO.getFileName() + "-" + (i + 1));
                     if (tempFile.exists())
                         tempFile.delete();
                 }
                 fileInputStream.close();
                 fileInputStream = null;
+                if (newFile.exists())
+                    newFile.delete();
+                File dir = new File(targetPath);
+                if (dir.exists())
+                    dir.delete();
             } finally {
                 if (fileInputStream != null) {
                     fileInputStream.close();
