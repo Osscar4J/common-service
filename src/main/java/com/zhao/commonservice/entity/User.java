@@ -29,12 +29,6 @@ public class User extends UpdateEntity {
      */
     private Integer gender;
     /**
-     * 角色id
-     * @Author zhaolianqi
-     * @Date 2020/10/28 11:40
-     */
-    private Integer roleId;
-    /**
      * 手机号
      * @Author zhaolianqi
      * @Date 2020/10/28 11:37
@@ -86,12 +80,12 @@ public class User extends UpdateEntity {
     @TableField(exist = false)
     private List<Menu> menus;
     /**
-     * 角色code列表
+     * 角色列表
      * @Author zhaolianqi
      * @Date 2020/11/5 14:16
      */
     @TableField(exist = false)
-    private List<String> roles;
+    private List<Role> roles;
 
     public String getAccount() {
         return account;
@@ -173,14 +167,6 @@ public class User extends UpdateEntity {
         this.nickname = nickname;
     }
 
-    public Integer getRoleId() {
-        return roleId;
-    }
-
-    public void setRoleId(Integer roleId) {
-        this.roleId = roleId;
-    }
-
     public List<Menu> getMenus() {
         return menus;
     }
@@ -189,11 +175,11 @@ public class User extends UpdateEntity {
         this.menus = menus;
     }
 
-    public List<String> getRoles() {
+    public List<Role> getRoles() {
         return roles;
     }
 
-    public void setRoles(List<String> roles) {
+    public void setRoles(List<Role> roles) {
         this.roles = roles;
     }
 }

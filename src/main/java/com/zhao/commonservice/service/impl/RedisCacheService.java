@@ -44,6 +44,11 @@ public class RedisCacheService implements CacheService {
     }
 
     @Override
+    public void removeMapCache(String map, String key) {
+        redissonClient.getMapCache(map).remove(key);
+    }
+
+    @Override
     public void putMapCache(String map, String key, Object object, int seconds) {
         redissonClient.getMapCache(map).put(key, object, seconds, TimeUnit.SECONDS);
     }

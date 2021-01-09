@@ -2,8 +2,11 @@ package com.zhao.commonservice.service;
 
 
 import com.zhao.common.model.TokenModel;
+import com.zhao.commonservice.entity.Role;
 import com.zhao.commonservice.entity.User;
 import com.zhao.commonservice.reqvo.UserReqVO;
+
+import java.util.List;
 
 public interface UserService extends BaseService<User> {
 
@@ -23,5 +26,14 @@ public interface UserService extends BaseService<User> {
     User getByOpenid(String openid);
 
     void refreshAuthCache(int userId);
+
+    /**
+     * 更新用户的角色信息
+     * @param id 用户id
+     * @param roles 角色列表
+     * @Author zhaolianqi
+     * @Date 2021/1/7 20:04
+     */
+    boolean updateRoles(int id, List<Role> roles);
 
 }

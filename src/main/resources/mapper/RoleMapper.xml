@@ -3,12 +3,14 @@
 <mapper namespace="com.zhao.commonservice.dao.RoleMapper" >
 	<resultMap type="com.zhao.commonservice.entity.Role" id="BaseRM">
 		<id column="id" property="id"/>
+		<result column="code" property="code"/>
 		<result column="name" property="name"/>
 		<result column="remark" property="remark"/>
 	</resultMap>
 
 	<sql id="BaseSelectColumn">
 		self.id,
+		self.code,
 		self.name,
 		self.remark
 	</sql>

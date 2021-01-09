@@ -13,6 +13,7 @@ public class Role extends SuperBaseEntity {
     private static final long serialVersionUID = -563353914439401650L;
 
     private Integer id;
+    private String code;
     private String name;
     private String remark;
 
@@ -38,5 +39,13 @@ public class Role extends SuperBaseEntity {
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
     }
 }

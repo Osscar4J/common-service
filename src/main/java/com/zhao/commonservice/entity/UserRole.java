@@ -14,6 +14,13 @@ import java.util.Date;
 public class UserRole extends SuperBaseEntity {
     private static final long serialVersionUID = -563353914439401650L;
 
+    public UserRole(){}
+
+    public UserRole(int userId, int roleId){
+        this.userId = userId;
+        this.roleId = roleId;
+    }
+
     private Integer userId;
     private Integer roleId;
     private Date createTime;

@@ -1,5 +1,6 @@
 package com.zhao.commonservice.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.zhao.common.entity.UserInfo;
 import com.zhao.common.exception.BusinessException;
 import com.zhao.common.model.TokenModel;
@@ -7,21 +8,28 @@ import com.zhao.common.respvo.ResponseStatus;
 import com.zhao.common.utils.Asserts;
 import com.zhao.common.utils.JwtTokenUtil;
 import com.zhao.common.utils.MD5Utils;
+import com.zhao.commonservice.dao.RoleMapper;
 import com.zhao.commonservice.dao.UserMapper;
 import com.zhao.commonservice.entity.Menu;
+import com.zhao.commonservice.entity.Role;
 import com.zhao.commonservice.entity.User;
+import com.zhao.commonservice.entity.UserRole;
 import com.zhao.commonservice.reqvo.BaseReqVO;
 import com.zhao.commonservice.reqvo.UserReqVO;
 import com.zhao.commonservice.service.CacheService;
 import com.zhao.commonservice.service.MenuService;
+import com.zhao.commonservice.service.UserRoleService;
 import com.zhao.commonservice.service.UserService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl extends MyBaseService<UserMapper, User> implements UserService {
@@ -32,6 +40,10 @@ public class UserServiceImpl extends MyBaseService<UserMapper, User> implements 
     private MenuService menuService;
     @Autowired
     private CacheService cacheService;
+    @Autowired
+    private UserRoleService userRoleService;
+    @Autowired
+    private RoleMapper roleMapper;
 
     @Override
     public TokenModel login(UserReqVO reqVO) {
@@ -78,6 +90,19 @@ public class UserServiceImpl extends MyBaseService<UserMapper, User> implements 
         }
     }
 
+    @Transactional
+    @Override
+    public boolean updateRoles(int id, List<Role> roles) {
+        Asserts.notNull(roles);
+        boolean res = userRoleService.remove(new QueryWrapper<UserRole>().eq("user_id", id));
+        if (roles.size() > 0){
+            List<UserRole> userRoles = new ArrayList<>(4);
+            roles.forEach(menu -> userRoles.add(new UserRole(id, menu.getId())));
+            res = userRoleService.saveBatch(userRoles);
+        }
+        return res;
+    }
+
     @Override
     public boolean save(User entity) {
         Asserts.notEmpty(entity.getAccount(), ResponseStatus.USER_ACCOUNT_CANT_BE_EMPTY);
@@ -87,8 +112,15 @@ public class UserServiceImpl extends MyBaseService<UserMapper, User> implements 
     @Override
     public User getDetail(BaseReqVO reqvo) {
         User user = super.getDetail(reqvo);
-        user.setMenus(menuService.getListByRole(user.getRoleId()));
-
+        if (user == null)
+            return null;
+        List<Role> roles = roleMapper.selectByUserId(user.getId());
+        user.setRoles(roles);
+        if (roles != null && !roles.isEmpty()){
+            user.setMenus(menuService.getListByRoles(
+                    roles.stream().map(Role::getId).collect(Collectors.toList())
+            ));
+        }
         return user;
     }
 
@@ -103,7 +135,6 @@ public class UserServiceImpl extends MyBaseService<UserMapper, User> implements 
                         "  `account` varchar(16) NOT NULL,\n" +
                         "  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,\n" +
                         "  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n" +
-                        "  `role_id` int(10) unsigned NOT NULL DEFAULT '0',\n" +
                         "  `nickname` varchar(64) DEFAULT NULL,\n" +
                         "  `gender` tinyint(4) NOT NULL DEFAULT '2',\n" +
                         "  `phone` varchar(16) NOT NULL,\n" +

@@ -36,6 +36,7 @@ public interface CacheService {
     Object getFromMapCache(String map, String key);
 
     void removeMapCache(String map);
+    void removeMapCache(String map, String key);
 
     /**
      * 存到RMapCache

@@ -35,6 +35,14 @@ public interface MenuService extends BaseService<Menu> {
     List<Menu> getListByRole(int roleId);
 
     /**
+     * 查询多个角色的菜单列表
+     * @param roleIds 角色id列表
+     * @Author zhaolianqi
+     * @Date 2021/1/7 20:11
+     */
+    List<Menu> getListByRoles(List<Integer> roleIds);
+
+    /**
      * 查询用户的菜单列表（含权限信息）
      * @Author zhaolianqi
      * @Date 2020/12/11 16:06

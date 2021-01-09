@@ -36,7 +36,12 @@ public class MenuServiceImpl extends MyBaseService<MenuMapper, Menu> implements 
 
     @Override
     public List<Menu> getListByRole(int roleId) {
-        return menuMapper.selectListByRoles(Collections.singletonList(roleId));
+        return this.getListByRoles(Collections.singletonList(roleId));
+    }
+
+    @Override
+    public List<Menu> getListByRoles(List<Integer> roleIds) {
+        return menuMapper.selectListByRoles(roleIds);
     }
 
     @Override

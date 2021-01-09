@@ -18,7 +18,7 @@ public class UserRoleServiceImpl extends MyBaseService<UserRoleMapper, UserRole>
                 "CREATE TABLE `user_role_tb` (\n" +
                         "  `user_id` int(11) NOT NULL,\n" +
                         "  `role_id` int(11) NOT NULL,\n" +
-                        "  `create_time` datetime NOT NULL,\n" +
+                        "  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,\n" +
                         "  PRIMARY KEY (`user_id`,`role_id`)\n" +
                         ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;"
         );

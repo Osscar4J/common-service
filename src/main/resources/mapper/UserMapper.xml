@@ -28,7 +28,6 @@
 		self.account,
 		self.create_time,
 		self.update_time,
-		self.role_id,
 		self.nickname,
 		self.gender,
 		self.phone,
@@ -58,9 +57,6 @@
 		<if test="reqvo.nickname!= null and reqvo.nickname!=''">
 			and self.nickname like concat('%', #{reqvo.nickname}, '%')
 		</if>
-		<if test="reqvo.roleId!= null">
-			and self.role_id=#{reqvo.roleId}
-		</if>
 		<if test="reqvo.status!= null">
 			and self.status=#{reqvo.status}
 		</if>
@@ -69,9 +65,7 @@
 	<select id="selectByAccount" resultMap="DetailRM">
 		select
 			<include refid="BaseSelectColumn"/>
-			,r.id rId, r.name rName
 		<include refid="LinkedSql"/>
-        left join role_tb r on r.id=self.role_id
         where self.is_delete!=1 and self.account=#{account}
 	</select>
 

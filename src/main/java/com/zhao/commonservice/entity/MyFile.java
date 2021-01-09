@@ -14,10 +14,14 @@ public class MyFile extends BaseEntity {
 
     private Integer userId;
     private String name;
+    private String fileMd5;
     /** 文件格式（jpg、doc、mp3等） */
     private String format;
     /** 文件大小，单位：字节 */
     private Integer fileSize;
+    private Integer width;
+    private Integer height;
+    private Integer duration;
     private String url;
 
     public Integer getUserId() {
@@ -58,5 +62,37 @@ public class MyFile extends BaseEntity {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public String getFileMd5() {
+        return fileMd5;
+    }
+
+    public void setFileMd5(String fileMd5) {
+        this.fileMd5 = fileMd5;
+    }
+
+    public Integer getDuration() {
+        return duration;
+    }
+
+    public void setDuration(Integer duration) {
+        this.duration = duration;
+    }
+
+    public Integer getHeight() {
+        return height;
+    }
+
+    public void setHeight(Integer height) {
+        this.height = height;
+    }
+
+    public Integer getWidth() {
+        return width;
+    }
+
+    public void setWidth(Integer width) {
+        this.width = width;
     }
 }

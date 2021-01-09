@@ -9,16 +9,22 @@ import com.aliyuncs.auth.sts.AssumeRoleResponse;
 import com.aliyuncs.http.MethodType;
 import com.aliyuncs.profile.DefaultProfile;
 import com.aliyuncs.profile.IClientProfile;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.zhao.common.exception.BusinessException;
 import com.zhao.common.respvo.BaseResponse;
+import com.zhao.common.respvo.ResponseStatus;
 import com.zhao.commonservice.annotations.Auth;
 import com.zhao.commonservice.annotations.LoginRequired;
 import com.zhao.commonservice.annotations.SysLog;
+import com.zhao.commonservice.entity.MyFile;
 import com.zhao.commonservice.oss.AliOSSConfig;
 import com.zhao.commonservice.oss.modal.OSSModel;
 import com.zhao.commonservice.reqvo.FileUploadReqVO;
+import com.zhao.commonservice.service.CacheService;
+import com.zhao.commonservice.service.MyFileService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -44,6 +50,14 @@ public class FileApi {
 
     private String roleSessionName = "promanager";
     private String tempFilePath = "F:/videos/temp/";
+    @Autowired
+    private MyFileService myFileService;
+    @Autowired
+    private CacheService cacheService;
+    // 文件分片上传缓存key
+    private final String uploadMapKey = "file-upload";
+    // 缓存15天
+    private final int cacheSeconds = 86400 * 15;
 
     private Logger logger = LoggerFactory.getLogger(FileApi.class);
 
@@ -127,13 +141,22 @@ public class FileApi {
      * @Date 2020/11/20 17:28
      */
     @PostMapping("/checkShard")
-    public Integer checkFileShardIndex(@RequestBody FileUploadReqVO reqVO){
-        int shardIndex = 0;
+    public BaseResponse<?> checkFileShardIndex(@RequestBody FileUploadReqVO reqVO){
         String fileMd5 = reqVO.getMd5();
-        // TODO 通过文件的MD5值查该文件是否上传过或是否上传完，
-        // TODO 如果没有上传完，则返回最后上传的分片index
-
-        return shardIndex;
+        if (StringUtils.isEmpty(fileMd5))
+            throw new BusinessException(ResponseStatus.FILE_INVALIDATE);
+        // 如果文件已存在，直接返回
+        MyFile file = myFileService.getOne(
+                new QueryWrapper<MyFile>()
+                        .eq("file_md5", fileMd5)
+                        .eq("status", MyFileService.Status.SUCCESS)
+        );
+        if (file != null)
+            return BaseResponse.SUCCESS(file);
+        Integer shardIndex = (Integer) cacheService.getFromMapCache(uploadMapKey, fileMd5);
+        if (shardIndex == null)
+            shardIndex = 0;
+        return BaseResponse.SUCCESS(shardIndex);
     }
 
     /**
@@ -152,8 +175,8 @@ public class FileApi {
         String targetPath = tempFilePath + md5 + "/";
         File destFile = new File(targetPath + reqVO.getFileName() + "-" + reqVO.getCurrShard());
         file.transferTo(destFile);
-        // TODO redis保存当前进度
-
+        // redis保存当前进度
+        cacheService.putMapCache(uploadMapKey, md5, reqVO.getCurrShard(), cacheSeconds);
         // 分片已全部上传完成，进行合并
         if (reqVO.getCurrShard() == reqVO.getTotalShard()){
             File newFile = new File(targetPath + reqVO.getFileName());
@@ -184,6 +207,8 @@ public class FileApi {
                 File dir = new File(targetPath);
                 if (dir.exists())
                     dir.delete();
+                // 移除缓存
+                cacheService.removeMapCache(uploadMapKey, md5);
             } finally {
                 if (fileInputStream != null) {
                     fileInputStream.close();
