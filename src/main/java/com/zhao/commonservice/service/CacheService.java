@@ -49,4 +49,13 @@ public interface CacheService {
      */
     void putMapCache(String map, String key, Object object, int seconds);
 
+    /**
+     * 将指定key的值自增1，并且返回自增后的值
+     * @param map RMap key
+     * @param key key
+     * @Author zhaolianqi
+     * @Date 2021/1/14 17:10
+     */
+    int incrementNumber(String map, String key);
+
 }

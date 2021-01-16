@@ -10,18 +10,23 @@ import com.aliyuncs.http.MethodType;
 import com.aliyuncs.profile.DefaultProfile;
 import com.aliyuncs.profile.IClientProfile;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.zhao.common.entity.UserInfo;
 import com.zhao.common.exception.BusinessException;
 import com.zhao.common.respvo.BaseResponse;
 import com.zhao.common.respvo.ResponseStatus;
+import com.zhao.common.utils.FileUtil;
 import com.zhao.commonservice.annotations.Auth;
+import com.zhao.commonservice.annotations.CurrentUser;
 import com.zhao.commonservice.annotations.LoginRequired;
 import com.zhao.commonservice.annotations.SysLog;
+import com.zhao.commonservice.config.PropertiesUtil;
 import com.zhao.commonservice.entity.MyFile;
 import com.zhao.commonservice.oss.AliOSSConfig;
 import com.zhao.commonservice.oss.modal.OSSModel;
 import com.zhao.commonservice.reqvo.FileUploadReqVO;
 import com.zhao.commonservice.service.CacheService;
 import com.zhao.commonservice.service.MyFileService;
+import com.zhao.commonservice.upload.FileUploaderFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,8 +35,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Calendar;
@@ -49,7 +52,7 @@ import java.util.Calendar;
 public class FileApi {
 
     private String roleSessionName = "promanager";
-    private String tempFilePath = "F:/videos/temp/";
+    private String uploadPath = (String) PropertiesUtil.getProperty("upload-path");
     @Autowired
     private MyFileService myFileService;
     @Autowired
@@ -165,56 +168,37 @@ public class FileApi {
      * @Date 2020/11/20 15:30
      */
     @PostMapping("/multipartUpload")
-    public BaseResponse<Object> multipartUpload(FileUploadReqVO reqVO, MultipartFile file) throws IOException {
-        if (StringUtils.isEmpty(reqVO.getMd5()))
-            return null;
-        if (StringUtils.isEmpty(reqVO.getFileName()))
-            reqVO.setFileName(file.getOriginalFilename());
-        String md5 = reqVO.getMd5();
-        // 这个目录做成可配置的
-        String targetPath = tempFilePath + md5 + "/";
-        File destFile = new File(targetPath + reqVO.getFileName() + "-" + reqVO.getCurrShard());
+    public BaseResponse<Object> multipartUpload(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("md5") String md5,
+            @RequestParam("filename") String filename,
+            @RequestParam("totalShard") Integer totalShard,
+            @RequestParam("currShard") Integer currShard,
+            @CurrentUser UserInfo user) throws IOException {
+        if (StringUtils.isEmpty(md5))
+            throw new BusinessException("md5不能为空");
+        if (StringUtils.isEmpty(filename))
+            filename = file.getOriginalFilename();
+        String targetPath = uploadPath + "temp/" + user.getId() + "/" + md5 + "/";
+        File targetPathDir = new File(targetPath);
+        if (!targetPathDir.exists())
+            targetPathDir.mkdirs();
+        File destFile = new File(targetPath + file.getOriginalFilename() + "-" + currShard);
         file.transferTo(destFile);
-        // redis保存当前进度
-        cacheService.putMapCache(uploadMapKey, md5, reqVO.getCurrShard(), cacheSeconds);
         // 分片已全部上传完成，进行合并
-        if (reqVO.getCurrShard() == reqVO.getTotalShard()){
-            File newFile = new File(targetPath + reqVO.getFileName());
+        if (currShard == totalShard){
+            File newFile = new File(targetPath + file.getOriginalFilename());
             if (newFile.exists())
                 newFile.delete();
-            FileOutputStream outputStream = new FileOutputStream(newFile, true);
-            FileInputStream fileInputStream = null;
-            byte[] byt = new byte[10 * 1024 * 1024];
-            int len;
-            try {
-                for (int i = 0; i < reqVO.getTotalShard(); i++){
-                    fileInputStream = new FileInputStream(new File(targetPath + reqVO.getFileName() + "-" + (i + 1)));
-                    while ((len = fileInputStream.read(byt)) != -1) {
-                        outputStream.write(byt, 0, len);
-                    }
-                    fileInputStream.close();
-                }
-                // 删除临时文件
-                for (int i = 0; i < reqVO.getTotalShard(); i++){
-                    File tempFile = new File(targetPath + reqVO.getFileName() + "-" + (i + 1));
-                    if (tempFile.exists())
-                        tempFile.delete();
-                }
-                fileInputStream.close();
-                fileInputStream = null;
-                if (newFile.exists())
-                    newFile.delete();
-                File dir = new File(targetPath);
-                if (dir.exists())
-                    dir.delete();
-                // 移除缓存
-                cacheService.removeMapCache(uploadMapKey, md5);
-            } finally {
-                if (fileInputStream != null) {
-                    fileInputStream.close();
-                }
-                outputStream.close();
+            for (int i = 0; i < totalShard; i++){
+                FileUtil.transferTo(new File(targetPath + file.getOriginalFilename() + "-" + (i + 1)), newFile, true, true);
             }
+            FileUploaderFactory.getUploader().upload(newFile, uploadPath + filename);
+            // 移除缓存
+            cacheService.removeMapCache(uploadMapKey);
+        } else {
+            // redis保存当前进度+1
+            cacheService.incrementNumber(uploadMapKey, md5);
         }
         return BaseResponse.SUCCESS();
     }

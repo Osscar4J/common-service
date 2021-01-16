@@ -31,7 +31,7 @@ public class MyFileServiceImpl extends MyBaseService<MyFileMapper, MyFile> imple
                         "  `url` varchar(255) NOT NULL,\n" +
                         "  PRIMARY KEY (`id`),\n" +
                         "  UNIQUE KEY `uni_file_md5` (`file_md5`)\n" +
-                        ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;"
+                        ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;"
         );
     }
 }

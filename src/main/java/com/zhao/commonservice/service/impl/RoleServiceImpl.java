@@ -41,11 +41,15 @@ public class RoleServiceImpl extends MyBaseService<RoleMapper, Role> implements 
                 "SET FOREIGN_KEY_CHECKS=0;",
                 "CREATE TABLE `role_tb` (\n" +
                         "  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,\n" +
+                        "  `is_delete` tinyint(255) unsigned NOT NULL DEFAULT '0',\n" +
+                        "  `status` tinyint(255) unsigned NOT NULL DEFAULT '1',\n" +
                         "  `code` varchar(16) NOT NULL,\n" +
-                        "  `name` varchar(32) NOT NULL,\n" +
+                        "  `name` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,\n" +
+                        "  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,\n" +
+                        "  `update_time` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,\n" +
                         "  `remark` varchar(255) DEFAULT NULL,\n" +
                         "  PRIMARY KEY (`id`)\n" +
-                        ") ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4;"
+                        ") ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;"
         );
     }
 }

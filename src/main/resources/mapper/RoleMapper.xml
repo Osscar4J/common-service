@@ -20,7 +20,7 @@
 	</sql>
 	
 	<sql id="PageConditionSql">
-
+		where self.is_delete = 0
 	</sql>
 
 	<select id="selectTotalCount" resultType="long">

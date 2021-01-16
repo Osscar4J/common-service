@@ -28,6 +28,7 @@ public class GlobalExceptionHandler {
 		if (e instanceof BusinessException) {
 			resp.setCode(((BusinessException)e).getCode());
 		} else {
+			e.printStackTrace();
 			resp.setCode(500);
 		}
 		logger.error("==================== Exception ====================");

@@ -53,4 +53,9 @@ public class RedisCacheService implements CacheService {
         redissonClient.getMapCache(map).put(key, object, seconds, TimeUnit.SECONDS);
     }
 
+    @Override
+    public int incrementNumber(String map, String key) {
+        return (int) redissonClient.getMapCache(map).addAndGet(key, 1);
+    }
+
 }

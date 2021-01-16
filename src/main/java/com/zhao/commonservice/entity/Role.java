@@ -9,10 +9,9 @@ import com.baomidou.mybatisplus.annotation.TableName;
  * @Version: v1.0
  */
 @TableName("role_tb")
-public class Role extends SuperBaseEntity {
+public class Role extends UpdateEntity {
     private static final long serialVersionUID = -563353914439401650L;
 
-    private Integer id;
     private String code;
     private String name;
     private String remark;

@@ -26,7 +26,9 @@ public class MenuServiceImpl extends MyBaseService<MenuMapper, Menu> implements 
     public boolean save(Menu entity) {
         if (entity.getType() == Type.NAV){
             synchronized (this){
-                int maxId = menuMapper.selectMaxIdByType(Type.NAV);
+                Integer maxId = menuMapper.selectMaxIdByType(Type.NAV);
+                if (maxId == null)
+                    maxId = 0;
                 entity.setId(maxId + 1);
                 return super.save(entity);
             }
