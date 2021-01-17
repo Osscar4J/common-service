@@ -15,6 +15,7 @@ import com.zhao.common.exception.BusinessException;
 import com.zhao.common.respvo.BaseResponse;
 import com.zhao.common.respvo.ResponseStatus;
 import com.zhao.common.utils.FileUtil;
+import com.zhao.common.utils.ImageUtils;
 import com.zhao.commonservice.annotations.Auth;
 import com.zhao.commonservice.annotations.CurrentUser;
 import com.zhao.commonservice.annotations.LoginRequired;
@@ -185,6 +186,19 @@ public class FileApi {
             targetPathDir.mkdirs();
         File destFile = new File(targetPath + file.getOriginalFilename() + "-" + currShard);
         file.transferTo(destFile);
+        String res = null;
+
+        // 保存文件
+        if (currShard == 1){
+            MyFile myFile = new MyFile();
+            myFile.setFileMd5(md5);
+            myFile.setFormat(filename.substring(filename.lastIndexOf(".")));
+            myFile.setName(filename);
+            myFile.setUserId(user.getId());
+            myFile.setStatus(MyFileService.Status.UPLOADING);
+            myFileService.save(myFile);
+        }
+
         // 分片已全部上传完成，进行合并
         if (currShard == totalShard){
             File newFile = new File(targetPath + file.getOriginalFilename());
@@ -194,13 +208,26 @@ public class FileApi {
                 FileUtil.transferTo(new File(targetPath + file.getOriginalFilename() + "-" + (i + 1)), newFile, true, true);
             }
             FileUploaderFactory.getUploader().upload(newFile, uploadPath + filename);
+            res = "/images/" + filename;
             // 移除缓存
             cacheService.removeMapCache(uploadMapKey);
+            // 更新文件信息
+            MyFile myFile = new MyFile();
+            myFile.setFileMd5(md5);
+            myFile.setStatus(MyFileService.Status.SUCCESS);
+            myFile.setUrl(res);
+            File target = new File(uploadPath + filename);
+            myFile.setFileSize((int) target.length());
+            myFile.setUrl(res);
+            myFileService.updateByMd5(myFile);
+            // 获取图片的主色调、宽高
+            if (filename.endsWith(".png") || filename.endsWith(".jpg") || filename.endsWith(".jpeg"))
+                myFileService.updateRGBInfo(myFile, target);
         } else {
             // redis保存当前进度+1
             cacheService.incrementNumber(uploadMapKey, md5);
         }
-        return BaseResponse.SUCCESS();
+        return BaseResponse.SUCCESS(res);
     }
 
 }

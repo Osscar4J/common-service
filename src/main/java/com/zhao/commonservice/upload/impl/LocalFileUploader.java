@@ -18,7 +18,7 @@ public class LocalFileUploader implements FileUploader {
         if (uploadPath == null)
             return null;
         FileUtil.transferTo(file, new File(filename));
-        return "/" + filename;
+        return filename;
     }
 
 }

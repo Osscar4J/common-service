@@ -22,6 +22,9 @@ public class MyFile extends BaseEntity {
     private Integer width;
     private Integer height;
     private Integer duration;
+    private Integer r;
+    private Integer g;
+    private Integer b;
     private String url;
 
     public Integer getUserId() {
@@ -94,5 +97,29 @@ public class MyFile extends BaseEntity {
 
     public void setWidth(Integer width) {
         this.width = width;
+    }
+
+    public Integer getB() {
+        return b;
+    }
+
+    public void setB(Integer b) {
+        this.b = b;
+    }
+
+    public Integer getG() {
+        return g;
+    }
+
+    public void setG(Integer g) {
+        this.g = g;
+    }
+
+    public Integer getR() {
+        return r;
+    }
+
+    public void setR(Integer r) {
+        this.r = r;
     }
 }
