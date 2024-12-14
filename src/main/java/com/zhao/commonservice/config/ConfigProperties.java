@@ -9,11 +9,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-public class PropertiesUtil {
+public class ConfigProperties {
 
     private static Map<String, Object> propertyMap = new HashMap<>(8);
 
-    private PropertiesUtil(){}
+    private ConfigProperties(){}
 
     static {
         Properties properties = new Properties();

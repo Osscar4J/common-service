@@ -36,4 +36,17 @@ public interface UserService extends BaseService<User> {
      */
     boolean updateRoles(int id, List<Role> roles);
 
+    /**
+     * 修改密码
+     * @Author zhaolianqi
+     * @Date 2021/3/16 9:21
+     */
+    boolean resetPassword(int userId, String oldPassword, String newPassword);
+
+    /**
+     * 重置用户的密码
+     * @Author zhaolianqi
+     */
+    String resetPassword(int userId);
+
 }

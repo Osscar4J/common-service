@@ -1,13 +1,14 @@
 package com.zhao.commonservice.interceptors;
 
-import com.zhao.common.constants.RoleEnums;
 import com.zhao.common.constants.SysConstants;
 import com.zhao.common.entity.UserInfo;
 import com.zhao.common.exception.BusinessException;
 import com.zhao.common.model.TokenModel;
 import com.zhao.common.respvo.ResponseStatus;
 import com.zhao.common.utils.JwtTokenUtil;
-import com.zhao.commonservice.annotations.*;
+import com.zhao.commonservice.annotations.Auth;
+import com.zhao.commonservice.annotations.CommonPath;
+import com.zhao.commonservice.annotations.LoginRequired;
 import com.zhao.commonservice.service.CacheService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -52,27 +53,8 @@ public class PermissionInterceptor implements HandlerInterceptor {
      * @return
      */
     private boolean classPermissionHandler(Class<?> c, HttpServletRequest request, HttpServletResponse response) {
-        if (c.getAnnotation(LoginRequired.class) != null
-            || c.getAnnotation(HasRole.class) != null
-            || c.getAnnotation(AnyRole.class) != null) {
-            UserInfo user = checkToken(request.getHeader(SysConstants.TOKEN), response);
-            if (c.getAnnotation(HasRole.class) != null){
-                HasRole annotation = c.getAnnotation(HasRole.class);
-                RoleEnums[] roleIds = annotation.value();
-                for (RoleEnums role: roleIds){
-                    if (role.getCode() != user.getRoleId())
-                        throw new BusinessException(ResponseStatus.NO_PERMISSION);
-                }
-            }
-            if (c.getAnnotation(AnyRole.class) != null){
-                AnyRole annotation = c.getAnnotation(AnyRole.class);
-                RoleEnums[] roleIds = annotation.value();
-                for (RoleEnums role: roleIds){
-                    if (role.getCode() == user.getRoleId())
-                        return true;
-                }
-                throw new BusinessException(ResponseStatus.NO_PERMISSION);
-            }
+        if (c.getAnnotation(LoginRequired.class) != null) {
+            checkToken(request.getHeader(SysConstants.TOKEN), response);
         }
         return true;
     }
@@ -96,27 +78,8 @@ public class PermissionInterceptor implements HandlerInterceptor {
      * @return
      */
     private boolean methodPermissionHandler(HandlerMethod method, HttpServletRequest request, HttpServletResponse response) {
-        if (method.hasMethodAnnotation(LoginRequired.class)
-            || method.hasMethodAnnotation(HasRole.class)
-            || method.hasMethodAnnotation(AnyRole.class)) {
-            UserInfo user = checkToken(request.getHeader(SysConstants.TOKEN), response);
-            if (method.hasMethodAnnotation(HasRole.class)){
-                HasRole annotation = method.getMethodAnnotation(HasRole.class);
-                RoleEnums[] roleIds = annotation.value();
-                for (RoleEnums role: roleIds){
-                    if (role.getCode() != user.getRoleId())
-                        throw new BusinessException(ResponseStatus.NO_PERMISSION);
-                }
-            }
-            if (method.hasMethodAnnotation(AnyRole.class)){
-                AnyRole annotation = method.getMethodAnnotation(AnyRole.class);
-                RoleEnums[] roleIds = annotation.value();
-                for (RoleEnums role: roleIds){
-                    if (role.getCode() == user.getRoleId())
-                        return true;
-                }
-                throw new BusinessException(ResponseStatus.NO_PERMISSION);
-            }
+        if (method.hasMethodAnnotation(LoginRequired.class)) {
+            checkToken(request.getHeader(SysConstants.TOKEN), response);
         }
         // 功能权限
         Class<?> claz = method.getBeanType();

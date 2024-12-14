@@ -15,4 +15,10 @@ public interface RoleService extends BaseService<Role> {
      */
     boolean updateRoleMenus(int roleId, List<Menu> menus);
 
+    /**
+     * 查询用户的角色列表
+     * @return
+     */
+    List<Role> getListByUserId(int userId);
+
 }

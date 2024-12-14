@@ -1,6 +1,7 @@
 package com.zhao.commonservice.resolver;
 
 import com.alibaba.fastjson.JSONObject;
+import com.zhao.common.exception.BusinessException;
 import com.zhao.commonservice.annotations.PartBody;
 import org.springframework.core.MethodParameter;
 import org.springframework.util.StringUtils;
@@ -44,26 +45,36 @@ public class PartBodyResolver implements HandlerMethodArgumentResolver {
             jsonBody = buff.toString();
             nativeWebRequest.setAttribute(JSONBODY_ATTRIBUTE, jsonBody, NativeWebRequest.SCOPE_REQUEST);
         }
-        JSONObject jsonObject = JSONObject.parseObject(jsonBody);
-        if (jsonObject == null)
-            return null;
-
         Parameter parameter = methodParameter.getParameter();
-        String parameterName;
         PartBody partBodyAnn = parameter.getAnnotation(PartBody.class);
+        JSONObject jsonObject = JSONObject.parseObject(jsonBody);
+        // 获取参数名
+        String parameterName;
         if (!StringUtils.isEmpty(partBodyAnn.value())){
             parameterName = partBodyAnn.value();
         } else {
             parameterName = parameter.getName();
         }
-        Object object = jsonObject.get(parameterName);
 
-        Class<?> claz = parameter.getType();
-        if (claz.isPrimitive()){
-            return parsePrimitive(claz.getName(), object);
+        if (jsonObject == null){
+            if (partBodyAnn.required())
+                throw new BusinessException("Required parameter " + parameterName + " is missing");
+            return null;
         }
 
-        return parameter.getType().cast(object);
+        Object object = jsonObject.get(parameterName);
+        Object res;
+        Class<?> claz = parameter.getType();
+        if (claz.isPrimitive()){
+            res = parsePrimitive(claz.getName(), object);
+        } else {
+            res = parameter.getType().cast(object);
+        }
+        // 判断是否是必传参数
+        if (partBodyAnn.required() && res == null){
+            throw new BusinessException("Required parameter " + parameterName + " is missing");
+        }
+        return res;
     }
 
     /**

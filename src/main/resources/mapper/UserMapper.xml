@@ -19,7 +19,10 @@
 	</resultMap>
 
 	<resultMap id="DetailRM" type="com.zhao.commonservice.entity.User" extends="BaseRM">
-
+		<collection property="roles" ofType="com.zhao.commonservice.entity.Role">
+			<id column="rId" property="id"/>
+			<result column="rName" property="name"/>
+		</collection>
 	</resultMap>
 
 	<sql id="BaseSelectColumn">
@@ -60,6 +63,9 @@
 		<if test="reqvo.status!= null">
 			and self.status=#{reqvo.status}
 		</if>
+		<if test="reqvo.id!= null">
+			and self.id=#{reqvo.id}
+		</if>
 	</sql>
 
 	<select id="selectByAccount" resultMap="DetailRM">
@@ -82,7 +88,10 @@
 	<select id="selectPage" resultMap="DetailRM">
 		select
 			<include refid="BaseSelectColumn"></include>
+			,r.id rId, r.name rName
 		<include refid="LinkedSql"></include>
+		left join user_role_tb ur on ur.user_id=self.id
+		left join role_tb r on r.id=ur.role_id
 		inner join (
 			select self.id
 			<include refid="LinkedSql"></include>

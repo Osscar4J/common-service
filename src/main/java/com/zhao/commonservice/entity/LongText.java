@@ -1,8 +1,6 @@
 package com.zhao.commonservice.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
 
 import java.util.Date;
 
@@ -12,6 +10,7 @@ public class LongText extends SuperBaseEntity {
     @TableId(type = IdType.INPUT)
     private Integer id;
     private String content;
+    @TableField(fill = FieldFill.INSERT)
     private Date createTime;
 
     public Date getCreateTime() {

@@ -1,5 +1,7 @@
 package com.zhao.commonservice.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 
 import java.util.Date;
@@ -16,6 +18,7 @@ public class RoleMenu extends SuperBaseEntity {
 
     private Integer roleId;
     private Integer menuId;
+    @TableField(fill = FieldFill.INSERT)
     private Date createTime;
 
     public RoleMenu (){}

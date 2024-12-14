@@ -31,10 +31,14 @@ public class GlobalExceptionHandler {
 			e.printStackTrace();
 			resp.setCode(500);
 		}
-		logger.error("==================== Exception ====================");
-		logger.error("request URI: {}", request.getRequestURI());
-		logger.error("error: {}", e.getLocalizedMessage());
-		logger.error("================== Exception End ==================");
+//		logger.error("==================== Exception ====================");
+//		logger.error("request URI: {}", request.getRequestURI());
+//		StackTraceElement[] stackTraces = e.getStackTrace();
+//		for (StackTraceElement se: stackTraces){
+//			logger.info("Class: {}, line no: {}", se.getClassName(), se.getLineNumber());
+//		}
+//		logger.error("error: {}", e.getLocalizedMessage());
+//		logger.error("================== Exception End ==================");
 		return resp;
 	}
 }

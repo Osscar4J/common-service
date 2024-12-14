@@ -13,8 +13,6 @@ import com.zhao.commonservice.service.DataSourceService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.Serializable;
-import java.lang.reflect.Field;
-import java.util.Calendar;
 import java.util.List;
 
 public abstract class MyBaseService<M extends MyBaseMapper, T> extends ServiceImpl<MyBaseMapper<T>, T> implements BaseService<T> {
@@ -47,31 +45,6 @@ public abstract class MyBaseService<M extends MyBaseMapper, T> extends ServiceIm
             page.setRecords(myBaseMapper.selectPage(reqVO));
         }
         return page;
-    }
-
-    @Override
-    public boolean save(T entity) {
-        autoSetUpdateTime(entity.getClass(), entity, "updateTime");
-        autoSetUpdateTime(entity.getClass(), entity, "createTime");
-        return super.save(entity);
-    }
-
-    private T autoSetUpdateTime(Class<?> claz, T entity, String fieldName){
-        try {
-            Field createTimefield = claz.getDeclaredField(fieldName);
-            createTimefield.setAccessible(true);
-            createTimefield.set(entity, Calendar.getInstance().getTime());
-        } catch (Exception e) {
-            if (claz.getSuperclass() != Object.class)
-                return autoSetUpdateTime(claz.getSuperclass(), entity, fieldName);
-        }
-        return entity;
-    }
-
-    @Override
-    public boolean updateById(T entity) {
-        autoSetUpdateTime(entity.getClass(), entity, "updateTime");
-        return super.updateById(entity);
     }
 
     @Override

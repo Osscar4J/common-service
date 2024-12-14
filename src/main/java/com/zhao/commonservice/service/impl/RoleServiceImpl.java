@@ -1,17 +1,19 @@
 package com.zhao.commonservice.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.zhao.common.exception.BusinessException;
 import com.zhao.common.utils.Asserts;
 import com.zhao.commonservice.dao.RoleMapper;
 import com.zhao.commonservice.entity.Menu;
 import com.zhao.commonservice.entity.Role;
 import com.zhao.commonservice.entity.RoleMenu;
-import com.zhao.commonservice.service.RoleMenuService;
-import com.zhao.commonservice.service.RoleService;
+import com.zhao.commonservice.entity.UserRole;
+import com.zhao.commonservice.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -21,6 +23,14 @@ public class RoleServiceImpl extends MyBaseService<RoleMapper, Role> implements 
 
     @Autowired
     private RoleMenuService roleMenuService;
+    @Autowired
+    private RoleMapper roleMapper;
+    @Autowired
+    private UserRoleService userRoleService;
+    @Autowired
+    private CacheService cacheService;
+    @Autowired
+    private UserService userService;
 
     @Transactional
     @Override
@@ -32,7 +42,40 @@ public class RoleServiceImpl extends MyBaseService<RoleMapper, Role> implements 
             menus.forEach(menu -> roleMenus.add(new RoleMenu(roleId, menu.getId())));
             res = roleMenuService.saveBatch(roleMenus);
         }
+        if (res){
+            // 更新已登录的用户的权限信息（只更新拥有当前角色的用户）
+            List<String> userAuthKeys = cacheService.getKeysByPattern("user-auth-*");
+            if (!userAuthKeys.isEmpty()){
+                for (String authKey: userAuthKeys){
+                    String[] temp = authKey.split("-");
+                    if (temp.length > 2){
+                        int userId = Integer.parseInt(temp[2]);
+                        if (userRoleService.getOne(new QueryWrapper<UserRole>().eq("user_id", userId).eq("role_id", roleId)) != null){
+                            userService.refreshAuthCache(userId);
+                        }
+                    }
+                }
+            }
+        }
         return res;
+    }
+
+    @Override
+    public List<Role> getListByUserId(int userId) {
+        return roleMapper.selectByUserId(userId);
+    }
+
+    @Transactional
+    @Override
+    public boolean removeById(Serializable id) {
+        UserRole userRole = userRoleService.getOne(new QueryWrapper<UserRole>().eq("role_id", id), false);
+        if (userRole != null)
+            throw new BusinessException("该角色正在使用中");
+        if (super.removeById(id)){
+            // 删除角色-菜单关联信息
+            return roleMenuService.remove(new QueryWrapper<RoleMenu>().eq("role_id", id));
+        }
+        return false;
     }
 
     @Override

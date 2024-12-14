@@ -1,5 +1,9 @@
 package com.zhao.commonservice.service;
 
+import org.redisson.api.RedissonClient;
+
+import java.util.List;
+
 /**
  * 缓存服务
  * @Author: zhaolianqi
@@ -57,5 +61,14 @@ public interface CacheService {
      * @Date 2021/1/14 17:10
      */
     int incrementNumber(String map, String key);
+
+    /**
+     * 获取key列表
+     * @param pattern 支持正则
+     * @return
+     */
+    List<String> getKeysByPattern(String pattern);
+
+    RedissonClient getRedissonClient();
 
 }

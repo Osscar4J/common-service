@@ -1,5 +1,7 @@
 package com.zhao.commonservice.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 
 import java.util.Date;
@@ -23,6 +25,7 @@ public class UserRole extends SuperBaseEntity {
 
     private Integer userId;
     private Integer roleId;
+    @TableField(fill = FieldFill.INSERT)
     private Date createTime;
 
     public Date getCreateTime() {

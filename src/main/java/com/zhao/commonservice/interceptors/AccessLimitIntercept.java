@@ -4,9 +4,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.zhao.common.exception.BusinessException;
 import com.zhao.common.respvo.BaseResponse;
 import com.zhao.common.respvo.ResponseStatus;
-import com.zhao.common.utils.CommonUtils;
 import com.zhao.commonservice.annotations.AccessLimit;
 import com.zhao.commonservice.service.CacheService;
+import com.zhao.commonservice.utils.BizUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,7 +61,7 @@ public class AccessLimitIntercept implements HandlerInterceptor {
             int second = accessLimit.second();
 
             // 拼接redis key = IP + Api限流
-            String key = CommonUtils.getIpAddr(request) + request.getRequestURI();
+            String key = BizUtils.getIpAddr(request) + request.getRequestURI();
             // 获取redis的value
             Integer maxTimes = null;
             String value = (String) cacheService.get(key);

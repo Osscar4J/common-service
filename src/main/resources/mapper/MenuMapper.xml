@@ -54,8 +54,16 @@
 			<include refid="BaseSelectColumn"></include>
 			,sub.id sId, sub.name sName, sub.type sType, sub.method sMethod, sub.icon sIcon, sub.url sUrl, sub.remark sRemark
 		<include refid="LinkedSql"></include>
-		left join menu_tb sub on sub.parent_id=self.id and sub.is_delete=0
 		inner join role_menu_tb rm on rm.menu_id=self.id
+		left join (
+			select m.id, m.name, m.type, m.sort_no, m.method, m.icon, m.url, m.remark, m.parent_id from menu_tb m
+			inner JOIN role_menu_tb roleMenu on roleMenu.menu_id=m.id
+			where roleMenu.role_id in
+			<foreach collection="roleIds" open="(" item="rId" separator="," close=")">
+				#{rId}
+			</foreach>
+			and m.is_delete=0
+		) sub on sub.parent_id=self.id
 		WHERE self.parent_id=0 and rm.role_id in
 		<foreach collection="roleIds" open="(" item="rId" separator="," close=")">
 			#{rId}

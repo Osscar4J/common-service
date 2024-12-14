@@ -1,7 +1,7 @@
 package com.zhao.commonservice.upload.impl;
 
 import com.zhao.common.utils.FileUtil;
-import com.zhao.commonservice.config.PropertiesUtil;
+import com.zhao.commonservice.config.ConfigProperties;
 import com.zhao.commonservice.upload.FileUploader;
 
 import java.io.File;
@@ -13,7 +13,7 @@ public class LocalFileUploader implements FileUploader {
     @Override
     public String upload(File file, String filename) {
         if (uploadPath == null){
-            uploadPath = (String) PropertiesUtil.getProperty("upload-path");
+            uploadPath = (String) ConfigProperties.getProperty("upload-path");
         }
         if (uploadPath == null)
             return null;

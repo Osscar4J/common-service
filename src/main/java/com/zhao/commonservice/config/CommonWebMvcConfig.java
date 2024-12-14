@@ -29,6 +29,7 @@ public class CommonWebMvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/favicon.ico").addResourceLocations("file:" + uploadPath + "favicon.ico");
         registry.addResourceHandler("/upload/**").addResourceLocations("file:" + uploadPath);
         registry.addResourceHandler("/static/**").addResourceLocations("classpath:/static/");
     }

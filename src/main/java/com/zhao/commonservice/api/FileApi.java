@@ -15,12 +15,11 @@ import com.zhao.common.exception.BusinessException;
 import com.zhao.common.respvo.BaseResponse;
 import com.zhao.common.respvo.ResponseStatus;
 import com.zhao.common.utils.FileUtil;
-import com.zhao.common.utils.ImageUtils;
 import com.zhao.commonservice.annotations.Auth;
 import com.zhao.commonservice.annotations.CurrentUser;
 import com.zhao.commonservice.annotations.LoginRequired;
 import com.zhao.commonservice.annotations.SysLog;
-import com.zhao.commonservice.config.PropertiesUtil;
+import com.zhao.commonservice.config.ConfigProperties;
 import com.zhao.commonservice.entity.MyFile;
 import com.zhao.commonservice.oss.AliOSSConfig;
 import com.zhao.commonservice.oss.modal.OSSModel;
@@ -52,16 +51,14 @@ import java.util.Calendar;
 @RequestMapping("/api/file")
 public class FileApi {
 
-    private String roleSessionName = "promanager";
-    private String uploadPath = (String) PropertiesUtil.getProperty("upload-path");
+    private String roleSessionName = (String) ConfigProperties.getProperty("oss-role-session-name");
+    private String uploadPath = (String) ConfigProperties.getProperty("upload-path");
     @Autowired
     private MyFileService myFileService;
     @Autowired
     private CacheService cacheService;
     // 文件分片上传缓存key
     private final String uploadMapKey = "file-upload";
-    // 缓存15天
-    private final int cacheSeconds = 86400 * 15;
 
     private Logger logger = LoggerFactory.getLogger(FileApi.class);
 
@@ -210,7 +207,7 @@ public class FileApi {
             FileUploaderFactory.getUploader().upload(newFile, uploadPath + filename);
             res = "/images/" + filename;
             // 移除缓存
-            cacheService.removeMapCache(uploadMapKey);
+            cacheService.removeMapCache(uploadMapKey, md5);
             // 更新文件信息
             MyFile myFile = new MyFile();
             myFile.setFileMd5(md5);

@@ -9,6 +9,7 @@ public class BaseReqVO implements Serializable {
     protected int pageable = 1;
     protected Integer status;
     protected Integer id;
+    protected String name;
 
     public int getPageable() {
         return pageable;
@@ -59,4 +60,11 @@ public class BaseReqVO implements Serializable {
         return (current - 1) * size;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 }

@@ -1,14 +1,18 @@
 package com.zhao.commonservice.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.zhao.common.exception.BusinessException;
 import com.zhao.commonservice.dao.MenuMapper;
 import com.zhao.commonservice.entity.Menu;
+import com.zhao.commonservice.entity.RoleMenu;
 import com.zhao.commonservice.entity.UserRole;
 import com.zhao.commonservice.service.MenuService;
+import com.zhao.commonservice.service.RoleMenuService;
 import com.zhao.commonservice.service.UserRoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -21,6 +25,8 @@ public class MenuServiceImpl extends MyBaseService<MenuMapper, Menu> implements 
     private MenuMapper menuMapper;
     @Autowired
     private UserRoleService userRoleService;
+    @Autowired
+    private RoleMenuService roleMenuService;
 
     @Override
     public boolean save(Menu entity) {
@@ -54,6 +60,14 @@ public class MenuServiceImpl extends MyBaseService<MenuMapper, Menu> implements 
         if (userRoles.isEmpty())
             return Collections.emptyList();
         return menuMapper.selectListByRoles(userRoles.stream().map(UserRole::getRoleId).collect(Collectors.toList()));
+    }
+
+    @Override
+    public boolean removeById(Serializable id) {
+        RoleMenu roleMenu = roleMenuService.getOne(new QueryWrapper<RoleMenu>().eq("menu_id", id), false);
+        if (roleMenu != null)
+            throw new BusinessException("有角色引用了此菜单");
+        return super.removeById(id);
     }
 
     @Override

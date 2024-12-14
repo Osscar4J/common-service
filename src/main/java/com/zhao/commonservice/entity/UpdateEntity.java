@@ -1,5 +1,8 @@
 package com.zhao.commonservice.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.TableField;
+
 import java.util.Date;
 
 /**
@@ -11,7 +14,8 @@ import java.util.Date;
 public class UpdateEntity extends BaseEntity {
     private static final long serialVersionUID = -8698683074666668447L;
 
-    private Date updateTime;
+    @TableField(fill = FieldFill.UPDATE)
+    protected Date updateTime;
 
     public Date getUpdateTime() {
         return updateTime;
